@@ -11,7 +11,7 @@ class Document:
         self.marked_document = self._mark_document()
         self.sentences, self.sent_positions = self._split_sentences()
         self.sent_counts_before_style_change = self._sent_counts_before_style_change()
-        self.ngram_string = self._doc_to_ngram_string(SPECIAL_CHAR)
+        self.ngram_string = self._doc_to_ngram_string(Document.SPECIAL_CHAR)
 
     def _mark_document(self):
         # construct __str__'s representation
