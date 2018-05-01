@@ -11,7 +11,7 @@ class TextChunk(StylometryExtractor):
         self.ngram_string = self._doc_to_ngram_string()
 
     def _doc_to_ngram_string(self):
-        return self.special_char.join(''.join(ngram) for ngram in ngrams(self.text.lower(), 4) if ' ' not in ngram and '\n' not in ngram)
+        return self.special_char.join(''.join(ngram) for ngram in ngrams(self.raw_text.lower(), 4) if ' ' not in ngram and '\n' not in ngram)
     
     def squared_difference_with(self, other):
         vector = self.to_dict()
