@@ -1,4 +1,4 @@
-from nltk import sent_tokenize, word_tokenize, pos_tag
+from nltk import sent_tokenize, word_tokenize, pos_tag, ngrams
 
 class Document:
     MARKER = '\033[91m\u2588\033[0m'
