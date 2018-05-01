@@ -1,10 +1,19 @@
 import numpy as np
 import pyphen
 import math
+import csv
 from nltk import sent_tokenize, word_tokenize, Text, pos_tag
 from nltk.tokenize import RegexpTokenizer
 from nltk.probability import FreqDist
 from nltk.corpus import stopwords
+from collections import Counter
+
+
+with open('../data/most_common_pos_tag_trigrams.csv', 'r') as f:
+    MOST_COMMON_POS_TAG_TRIGRAMS = []
+    reader = csv.reader(f)
+    for line in reader:
+        MOST_COMMON_POS_TAG_TRIGRAMS.append(tuple(line))
 
 
 # Feature extraction
@@ -33,6 +42,7 @@ class StylometryExtractor:
         self.sentence_word_length = [len(sent.split()) for sent in self.sentences]
         self.paragraphs = [p for p in self.raw_text.split("\n\n") if len(p) > 0 and not p.isspace()]
         self.paragraph_word_length = [len(p.split()) for p in self.paragraphs]
+        self.all_trigrams = self._all_trigrams()
 
     def term_per_thousand(self, term):
         return self.words_frequency[term] * 1000 / self.words_frequency.N()
@@ -168,10 +178,28 @@ class StylometryExtractor:
 
 #     def get_byte_ngrams(self, number_of_bytes):
     @classmethod
-    def to_pos_tags(sentence):
+    def to_pos_tags(cls, sentence):
         tokens = StylometryExtractor.TOKENIZER.tokenize(sentence)
         pos_tags = list(map(lambda x: x[1], pos_tag(tokens)))
         return ['__START__'] + pos_tags + ['__END__']
+
+    @classmethod
+    def pos_tag_trigrams(cls, sentence):
+        pos_tags = StylometryExtractor.to_pos_tags(sentence)
+        return [(x, y, z) for x, y, z in zip(pos_tags, pos_tags[1:], pos_tags[2:])]
+
+    def _all_trigrams(self):
+        return Counter(trigram
+            for sentence in self.sentences
+            for trigram in StylometryExtractor.pos_tag_trigrams(sentence)
+        )
+
+    def pos_tag_percents(self):
+        number_of_trigrams = sum(self.all_trigrams.values())
+        return {
+            '_'.join(trigram): self.all_trigrams[trigram] / number_of_trigrams
+            for trigram in MOST_COMMON_POS_TAG_TRIGRAMS
+        }
 
     def to_dict(self):
         features = {
@@ -233,5 +261,7 @@ class StylometryExtractor:
 
         for stopword in stopwords.words('english'):
             features[stopword] = self.term_per_thousand(stopword)
+
+        features.update(self.pos_tag_percents())
 
         return features
