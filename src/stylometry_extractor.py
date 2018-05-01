@@ -1,4 +1,11 @@
+import numpy as np
+import pyphen
+import math
+from nltk import sent_tokenize, word_tokenize, Text, pos_tag
 from nltk.tokenize import RegexpTokenizer
+from nltk.probability import FreqDist
+from nltk.corpus import stopwords
+
 
 # Feature extraction
 class StylometryExtractor:
@@ -163,7 +170,7 @@ class StylometryExtractor:
     @classmethod
     def to_pos_tags(sentence):
         tokens = StylometryExtractor.TOKENIZER.tokenize(sentence)
-        pos_tags = list(map(lambda x: x[1], nltk.pos_tag(tokens)))
+        pos_tags = list(map(lambda x: x[1], pos_tag(tokens)))
         return ['__START__'] + pos_tags + ['__END__']
 
     def to_dict(self):
