@@ -50,7 +50,8 @@ class Document:
         return res
     
     def _doc_to_ngram_string(self, special_char = '$'):
-        return special_char.join(''.join(ngram) for ngram in ngrams(self.text.lower(), 4))
+        return special_char.join(''.join(ngram) for ngram in ngrams(self.text.lower(), 4) if ' ' not in ngram and '\n' not in ngram)
+        
 
     def __str__(self):
         return self.marked_document
