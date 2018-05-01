@@ -8,7 +8,7 @@ class TextChunk(StylometryExtractor):
     def __init__(self, text, special_char = SPECIAL_CHAR):
         super().__init__(text)
         self.special_char = special_char
-        self.ngram_string = self._doc_to_ngram_string(special_char)
+        self.ngram_string = self._doc_to_ngram_string()
 
     def _doc_to_ngram_string(self):
         return self.special_char.join(''.join(ngram) for ngram in ngrams(self.text.lower(), 4) if ' ' not in ngram and '\n' not in ngram)
