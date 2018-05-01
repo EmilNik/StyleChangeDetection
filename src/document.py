@@ -4,10 +4,11 @@ class Document:
     MARKER = '\033[91m\u2588\033[0m'
     SPECIAL_CHAR = '@<:@'
 
-    def __init__(self, text, changes=None, positions=None):
+    def __init__(self, text, changes=None, positions=None, special_char = SPECIAL_CHAR):
         self.text = text
         self.has_changes = changes
         self.positions = positions # character positions
+        self.special_char = special_char
         self.marked_document = self._mark_document()
         self.sentences, self.sent_positions = self._split_sentences()
         self.sent_counts_before_style_change = self._sent_counts_before_style_change()
@@ -49,8 +50,8 @@ class Document:
             last = sent_pos
         return res
     
-    def _doc_to_ngram_string(self, special_char = '$'):
-        return special_char.join(''.join(ngram) for ngram in ngrams(self.text.lower(), 4) if ' ' not in ngram and '\n' not in ngram)
+    def _doc_to_ngram_string(self):
+        return self.special_char.join(''.join(ngram) for ngram in ngrams(self.text.lower(), 4) if ' ' not in ngram and '\n' not in ngram)
         
 
     def __str__(self):
