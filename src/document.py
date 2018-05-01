@@ -2,6 +2,7 @@ from nltk import sent_tokenize, word_tokenize, pos_tag
 
 class Document:
     MARKER = '\033[91m\u2588\033[0m'
+    SPECIAL_CHAR = '@<:@'
 
     def __init__(self, text, changes=None, positions=None):
         self.text = text
@@ -10,6 +11,7 @@ class Document:
         self.marked_document = self._mark_document()
         self.sentences, self.sent_positions = self._split_sentences()
         self.sent_counts_before_style_change = self._sent_counts_before_style_change()
+        self.ngram_string = self._doc_to_ngram_string(SPECIAL_CHAR)
 
     def _mark_document(self):
         # construct __str__'s representation
@@ -46,6 +48,9 @@ class Document:
             res.append(sent_pos - last)
             last = sent_pos
         return res
+    
+    def _doc_to_ngram_string(self, special_char = '$'):
+        return special_char.join(''.join(ngram) for ngram in ngrams(self.text.lower(), 4))
 
     def __str__(self):
         return self.marked_document
