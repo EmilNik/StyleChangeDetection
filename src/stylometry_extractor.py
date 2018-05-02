@@ -2,6 +2,7 @@ import numpy as np
 import pyphen
 import math
 import csv
+import dill
 from nltk import sent_tokenize, word_tokenize, Text, pos_tag, ngrams
 from nltk.tokenize import RegexpTokenizer
 from nltk.probability import FreqDist
@@ -14,6 +15,10 @@ with open('../data/most_common_pos_tag_trigrams.csv', 'r') as f:
     reader = csv.reader(f)
     for line in reader:
         MOST_COMMON_POS_TAG_TRIGRAMS.append(tuple(line))
+
+
+with open('../data/vectorizer.pk', 'rb') as f:
+    VECTORIZER = dill.load(f)
 
 
 # Feature extraction
@@ -47,8 +52,9 @@ class StylometryExtractor:
         self.ngram_string = self._to_ngram_string()
 
     def _to_ngram_string(self):
+        cleared_text = ' '.join([word for word in self.words if word not in stopwords.words('english')])
         return StylometryExtractor.SPECIAL_CHAR.join(
-            ''.join(ngram) for ngram in ngrams(self.raw_text.lower(), 4) if ' ' not in ngram and '\n' not in ngram)
+            ''.join(ngram) for ngram in ngrams(cleared_text, 4) if ' ' not in ngram and '\n' not in ngram)
 
     def term_per_thousand(self, term):
         return self.words_frequency[term] * 1000 / self.words_frequency.N()
@@ -207,6 +213,12 @@ class StylometryExtractor:
             for trigram in MOST_COMMON_POS_TAG_TRIGRAMS
         }
 
+    def char_ngrams_tf_idf(self):
+        return dict(zip(
+            VECTORIZER.get_feature_names(),
+            VECTORIZER.transform([self.ngram_string]).toarray()[0]
+        ))
+
     def to_dict(self):
         features = {
             'Lexical diversity' : self.unique_words_ratio(),
@@ -269,5 +281,6 @@ class StylometryExtractor:
             features[stopword] = self.term_per_thousand(stopword)
 
         features.update(self.pos_tag_percents())
+        features.update(self.char_ngrams_tf_idf())
 
         return features
