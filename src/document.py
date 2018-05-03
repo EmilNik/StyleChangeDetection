@@ -7,17 +7,33 @@ class Document:
         self.text = text
         self.has_changes = changes
         self.positions = positions # character positions
-        self.marked_document = self._mark_document()
-        self.sentences, self.sent_positions = self._split_sentences()
-        self.sent_counts_before_style_change = self._sent_counts_before_style_change()
+        self._sentences = None
+        self._sent_positions = None
+        self._sent_counts_before_style_change = None
 
-    def _mark_document(self):
-        # construct __str__'s representation
-        marked_document = self.text
-        for index, position in enumerate(self.positions):
-            position += index * len(Document.MARKER)
-            marked_document = marked_document[:position] + Document.MARKER + marked_document[position:]
-        return marked_document
+    @property
+    def sentences(self):
+        if self._sentences is None:
+            self._sentences, self._sent_positions = self._split_sentences()
+        return self._sentences
+
+    @property
+    def sent_positions(self):
+        if self._sent_positions is None:
+            self._sentences, self._sent_positions = self._split_sentences()
+        return self._sent_positions
+
+    @property
+    def sent_counts_before_style_change(self):
+        if self._sent_counts_before_style_change is None:
+            self._sent_counts_before_style_change = []
+            if not self.has_changes:
+                return self._sent_counts_before_style_change
+            last = 0
+            for sent_pos in self.sent_positions:
+                self._sent_counts_before_style_change.append(sent_pos - last)
+                last = sent_pos
+        return self._sent_counts_before_style_change
 
     def _split_sentences(self):
         # split and map character positions to sentence positions
@@ -37,15 +53,9 @@ class Document:
 
         return sentences, sent_positions
 
-    def _sent_counts_before_style_change(self):
-        if not self.has_changes:
-            return []
-        last = 0
-        res = []
-        for sent_pos in self.sent_positions:
-            res.append(sent_pos - last)
-            last = sent_pos
-        return res
-
     def __str__(self):
-        return self.marked_document
+        marked_document = self.text
+        for index, position in enumerate(self.positions):
+            position += index * len(Document.MARKER)
+            marked_document = marked_document[:position] + Document.MARKER + marked_document[position:]
+        return marked_document

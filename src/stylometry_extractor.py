@@ -50,6 +50,7 @@ class StylometryExtractor:
         self.paragraph_word_length = [len(p.split()) for p in self.paragraphs]
         self.all_trigrams = self._all_trigrams()
         self.ngram_string = self._to_ngram_string()
+        self.features = self._to_dict()
 
     def _to_ngram_string(self):
         cleared_text = ' '.join([word for word in self.words if word not in stopwords.words('english')])
@@ -220,6 +221,9 @@ class StylometryExtractor:
         ))
 
     def to_dict(self):
+        return self.features
+
+    def _to_dict(self):
         features = {
             'Lexical diversity' : self.unique_words_ratio(),
             'Mean Word Length' : self.mean_word_len(),
