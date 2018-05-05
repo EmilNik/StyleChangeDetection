@@ -184,17 +184,17 @@ class StylometryExtractor:
             dale chall list of 3.000 easy words.
         """
         return 1.0 - self.number_of_dale_chall_difficult_words() / self.number_of_words
-    
+
     def yule_vocabulary_richness(self):
         M2 = sum([len(list(g))*(freq**2) for freq,g in groupby(sorted(self.lemmatized_words_frequency.values()))])
         M1 = float(sum(self.lemmatized_words_frequency.values()))
         return ((M2-M1) / (M1*M1)) * 10000
-        
+
     def simpson_vocabulary_richness(self):
         result = 0
-        for freq,g in groupby(sorted(doc.lemmatized_words_frequency.values())):
+        for freq,g in groupby(sorted(self.lemmatized_words_frequency.values())):
             result += (len(list(g))) * freq * (freq - 1)
-        n = sum(doc.lemmatized_words_frequency.values())
+        n = sum(self.lemmatized_words_frequency.values())
         return (result / n / (n - 1))
 
     def mean_sentence_len(self):
