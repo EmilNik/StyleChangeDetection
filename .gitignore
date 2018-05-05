@@ -1,6 +1,6 @@
 .DS_Store
-data/500_ngrams/train_features_scaled.csv
-data/500_ngrams/validation_features_scaled.csv
+data/500_ngrams/train_features_scaled_standard.csv
+data/500_ngrams/validation_features_scaled_standard.csv
 data/500_ngrams/train_features_scaled_minmax.csv
 data/500_ngrams/validation_features_scaled_minmax.csv
 
