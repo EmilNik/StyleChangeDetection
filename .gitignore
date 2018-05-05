@@ -1,8 +1,13 @@
 .DS_Store
+data/500_ngrams/train_features.csv
+data/500_ngrams/validation_features.csv
 data/500_ngrams/train_features_scaled_standard.csv
 data/500_ngrams/validation_features_scaled_standard.csv
 data/500_ngrams/train_features_scaled_minmax.csv
 data/500_ngrams/validation_features_scaled_minmax.csv
+data/imposters/imposters_features.csv
+data/imposters/imposters_scaled_minmax.csv
+data/imposters/imposters_scaled_standard.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
