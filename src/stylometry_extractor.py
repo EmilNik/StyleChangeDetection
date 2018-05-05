@@ -58,8 +58,11 @@ class StylometryExtractor:
         return StylometryExtractor.SPECIAL_CHAR.join(
             ''.join(ngram) for ngram in ngrams(cleared_text, 4) if ' ' not in ngram and '\n' not in ngram)
 
-    def term_per_thousand(self, term):
-        return self.words_frequency[term] * 1000 / self.words_frequency.N()
+    def word_per_thousand(self, word):
+        return self.words_frequency[word] * 1000 / self.words_frequency.N()
+
+    def token_per_thousand(self, token):
+        return self.tokens_frequency[token] * 1000 / self.tokens_frequency.N()
 
     def char_per_thousand(self, char):
         return self.raw_text.count(char) / self.raw_text_length * 1000
@@ -246,13 +249,13 @@ class StylometryExtractor:
             'Dale Chall Known Fraction' : self.get_dale_chall_known_fraction(),
             'Punctuation' : self.chars_per_thousand(['.', ',', '!', ';', '?']),
             'Special characters' : self.chars_per_thousand(['%', '#', ')', '(', '@', '$', '^','&', '>', '<', '*', '_', '-','=', '-', '+', '/','\\', '\'', '"', '`']),
-            'Commas' : self.term_per_thousand(','),
-            'Semicolons' : self.term_per_thousand(';'),
-            'Quotations' : self.term_per_thousand('\"'),
-            'Exclamations' : self.term_per_thousand('!'),
-            'Colons' : self.term_per_thousand(':'),
-            'Hyphens' : self.term_per_thousand('-'),
-            'Double Hyphens' : self.term_per_thousand('--'),
+            'Commas' : self.token_per_thousand(','),
+            'Semicolons' : self.token_per_thousand(';'),
+            'Quotations' : self.token_per_thousand('\"'),
+            'Exclamations' : self.token_per_thousand('!'),
+            'Colons' : self.token_per_thousand(':'),
+            'Hyphens' : self.token_per_thousand('-'),
+            'Double Hyphens' : self.token_per_thousand('--'),
             'A' : self.char_per_thousand('a'),
             'B' : self.char_per_thousand('b'),
             'C' : self.char_per_thousand('c'),
@@ -286,7 +289,7 @@ class StylometryExtractor:
             }
 
         for stopword in stopwords.words('english'):
-            features[stopword] = self.term_per_thousand(stopword)
+            features[stopword] = self.word_per_thousand(stopword)
 
         features.update(self.pos_tag_percents())
         features.update(self.char_ngrams_tf_idf())
