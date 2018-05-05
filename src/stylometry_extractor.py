@@ -7,7 +7,7 @@ from nltk import sent_tokenize, word_tokenize, Text, pos_tag, ngrams
 from nltk.tokenize import RegexpTokenizer
 from nltk.probability import FreqDist
 from nltk.corpus import stopwords
-from collections import Counter
+from collections import Counter, OrderedDict
 
 
 with open('../data/most_common_pos_tag_trigrams.csv', 'r') as f:
@@ -17,7 +17,7 @@ with open('../data/most_common_pos_tag_trigrams.csv', 'r') as f:
         MOST_COMMON_POS_TAG_TRIGRAMS.append(tuple(line))
 
 
-with open('../data/vectorizer.pk', 'rb') as f:
+with open('../data/vectorizer_500.pk', 'rb') as f:
     VECTORIZER = dill.load(f)
 
 
@@ -51,6 +51,7 @@ class StylometryExtractor:
         self.all_trigrams = self._all_trigrams()
         self.ngram_string = self._to_ngram_string()
         self.features = self._to_dict()
+        self.feature_names = list(self.features.keys())
 
     def _to_ngram_string(self):
         cleared_text = ' '.join([word for word in self.words if word not in stopwords.words('english')])
@@ -223,6 +224,9 @@ class StylometryExtractor:
     def to_dict(self):
         return self.features
 
+    def to_vector(self):
+        return list(self.features.values())
+
     def _to_dict(self):
         features = {
             'Lexical diversity' : self.unique_words_ratio(),
@@ -287,4 +291,4 @@ class StylometryExtractor:
         features.update(self.pos_tag_percents())
         features.update(self.char_ngrams_tf_idf())
 
-        return features
+        return OrderedDict(sorted(features.items(), key=lambda t: t[0]))
