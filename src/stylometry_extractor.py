@@ -5,6 +5,7 @@ import csv
 import dill
 from nltk import sent_tokenize, word_tokenize, Text, pos_tag, ngrams
 from nltk.tokenize import RegexpTokenizer
+from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.probability import FreqDist
 from nltk.corpus import stopwords
 from collections import Counter, OrderedDict
@@ -48,6 +49,8 @@ class StylometryExtractor:
 #         self.text = Text(word_tokenize(self.raw_text))
         self.words_frequency = FreqDist(Text(self.words))
         self.tokens_frequency = FreqDist(Text(self.tokens))
+        self.lemmatizer = WordNetLemmatizer()
+        self.lemmatized_words_frequency = FreqDist(Text([self.lemmatizer.lemmatize(word) for word in self.words]))
         self.sentences = sent_tokenize(self.raw_text)
         self.number_of_sentences = len(self.sentences)
         self.sentence_chars = [len(sent) for sent in self.sentences]
@@ -180,6 +183,18 @@ class StylometryExtractor:
             dale chall list of 3.000 easy words.
         """
         return 1.0 - self.number_of_dale_chall_difficult_words() / self.number_of_words
+    
+    def yule_vocabulary_richness(self):
+        M2 = sum([len(list(g))*(freq**2) for freq,g in groupby(sorted(self.lemmatized_words_frequency.values()))])
+        M1 = float(sum(self.lemmatized_words_frequency.values()))
+        return ((M2-M1) / (M1*M1)) * 10000
+        
+    def simpson_vocabulary_richness(self):
+        result = 0
+        for freq,g in groupby(sorted(doc.lemmatized_words_frequency.values())):
+            result += (len(list(g))) * freq * (freq - 1)
+        n = sum(doc.lemmatized_words_frequency.values())
+        return (result / n / (n - 1))
 
     def mean_sentence_len(self):
         return np.mean(self.sentence_word_length)
@@ -272,6 +287,8 @@ class StylometryExtractor:
             'Lix Index' : self.get_lix_index(),
             'Dale Chall Score' : self.get_dale_chall_score(),
             'Dale Chall Known Fraction' : self.get_dale_chall_known_fraction(),
+            'Yule Vocabulary Richness' : self.yule_vocabulary_richness(),
+            'Simpson Vocabulary Richness' : self.simpson_vocabulary_richness(),
             'Punctuation' : self.chars_per_thousand(['.', ',', '!', ';', '?']),
             'Special characters' : self.chars_per_thousand(['%', '#', ')', '(', '@', '$', '^','&', '>', '<', '*', '_', '-','=', '-', '+', '/','\\', '\'', '"', '`']),
             'Commas' : self.token_per_thousand(','),
