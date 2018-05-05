@@ -16,6 +16,12 @@ with open('../data/most_common_pos_tag_trigrams.csv', 'r') as f:
     for line in reader:
         MOST_COMMON_POS_TAG_TRIGRAMS.append(tuple(line))
 
+with open('../data/most_common_pos_tag_fourgrams.csv', 'r') as f:
+    MOST_COMMON_POS_TAG_FOURGRAMS = []
+    reader = csv.reader(f)
+    for line in reader:
+        MOST_COMMON_POS_TAG_FOURGRAMS.append(tuple(line))
+
 
 with open('../data/vectorizer_500.pk', 'rb') as f:
     VECTORIZER = dill.load(f)
@@ -49,6 +55,7 @@ class StylometryExtractor:
         self.paragraphs = [p for p in self.raw_text.split("\n\n") if len(p) > 0 and not p.isspace()]
         self.paragraph_word_length = [len(p.split()) for p in self.paragraphs]
         self.all_trigrams = self._all_trigrams()
+        self.all_fourgrams = self._all_fourgrams()
         self.ngram_string = self._to_ngram_string()
         self.features = self._to_dict()
         self.feature_names = list(self.features.keys())
@@ -205,17 +212,35 @@ class StylometryExtractor:
         pos_tags = StylometryExtractor.to_pos_tags(sentence)
         return [(x, y, z) for x, y, z in zip(pos_tags, pos_tags[1:], pos_tags[2:])]
 
+    @classmethod
+    def pos_tag_fourgrams(cls, sentence):
+        pos_tags = StylometryExtractor.to_pos_tags(sentence)
+        return [(p, l, m, n) for p, l, m, n in zip(pos_tags, pos_tags[1:], pos_tags[2:], pos_tags[3:])]
+
     def _all_trigrams(self):
         return Counter(trigram
             for sentence in self.sentences
             for trigram in StylometryExtractor.pos_tag_trigrams(sentence)
         )
 
-    def pos_tag_percents(self):
+    def _all_fourgrams(self):
+        return Counter(fourgram
+            for sentence in self.sentences
+            for fourgram in StylometryExtractor.pos_tag_fourgrams(sentence)
+        )
+
+    def pos_tag_trigrams_percents(self):
         number_of_trigrams = sum(self.all_trigrams.values())
         return {
             '_'.join(trigram): self.all_trigrams[trigram] / number_of_trigrams
             for trigram in MOST_COMMON_POS_TAG_TRIGRAMS
+        }
+
+    def pos_tag_fourgrams_percents(self):
+        number_of_fourgrams = sum(self.all_fourgrams.values())
+        return {
+            '_'.join(fourgram): self.all_fourgrams[fourgram] / number_of_fourgrams
+            for fourgram in MOST_COMMON_POS_TAG_FOURGRAMS
         }
 
     def char_ngrams_tf_idf(self):
@@ -291,7 +316,8 @@ class StylometryExtractor:
         for stopword in stopwords.words('english'):
             features[stopword] = self.word_per_thousand(stopword)
 
-        features.update(self.pos_tag_percents())
+        features.update(self.pos_tag_trigrams_percents())
+        features.update(self.pos_tag_fourgrams_percents())
         features.update(self.char_ngrams_tf_idf())
 
         return OrderedDict(sorted(features.items(), key=lambda t: t[0]))
