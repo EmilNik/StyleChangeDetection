@@ -12,20 +12,20 @@ from nltk.corpus import stopwords
 from collections import Counter, OrderedDict
 
 
-with open('../data/most_common_pos_tag_trigrams.csv', 'r') as f:
+with open('../data/models/most_common_pos_tag_trigrams.csv', 'r') as f:
     MOST_COMMON_POS_TAG_TRIGRAMS = []
     reader = csv.reader(f)
     for line in reader:
         MOST_COMMON_POS_TAG_TRIGRAMS.append(tuple(line))
 
-with open('../data/most_common_pos_tag_fourgrams.csv', 'r') as f:
+with open('../data/models/most_common_pos_tag_fourgrams.csv', 'r') as f:
     MOST_COMMON_POS_TAG_FOURGRAMS = []
     reader = csv.reader(f)
     for line in reader:
         MOST_COMMON_POS_TAG_FOURGRAMS.append(tuple(line))
 
 
-with open('../data/vectorizer_500.pk', 'rb') as f:
+with open('../data/models/vectorizer_500.pk', 'rb') as f:
     VECTORIZER = dill.load(f)
 
 
