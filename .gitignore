@@ -1,5 +1,9 @@
 .DS_Store
 data_old/
+data/train_features_scaled_minmax.csv
+data/train_features_scaled_standard.csv
+data/validation_features_scaled_minmax.csv
+data/validation_features_scaled_standard.csv
 
 
 # Byte-compiled / optimized / DLL files
