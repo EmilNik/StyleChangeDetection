@@ -3,6 +3,7 @@ import pyphen
 import math
 import csv
 import dill
+import re
 from itertools import groupby
 from nltk import sent_tokenize, word_tokenize, Text, pos_tag, ngrams
 from nltk.tokenize import RegexpTokenizer
@@ -10,7 +11,6 @@ from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.probability import FreqDist
 from nltk.corpus import stopwords
 from collections import Counter, OrderedDict
-
 
 with open('../data/models/most_common_pos_tag_trigrams.csv', 'r') as f:
     MOST_COMMON_POS_TAG_TRIGRAMS = []
@@ -50,6 +50,7 @@ class StylometryExtractor:
 #         self.text = Text(word_tokenize(self.raw_text))
         self.words_frequency = FreqDist(Text(self.words))
         self.tokens_frequency = FreqDist(Text(self.tokens))
+        self.chars_counter = FreqDist(self.raw_text)
         self.lemmatizer = WordNetLemmatizer()
         self.lemmatized_words_frequency = FreqDist(Text([self.lemmatizer.lemmatize(word) for word in self.words]))
         self.sentences = sent_tokenize(self.raw_text)
@@ -76,10 +77,25 @@ class StylometryExtractor:
         return self.tokens_frequency[token] * 1000 / self.tokens_frequency.N()
 
     def char_per_thousand(self, char):
-        return self.raw_text.count(char) / self.raw_text_length * 1000
+        return self.chars_counter.freq(char) * 1000
 
     def chars_per_thousand(self, chars):
         return sum([self.char_per_thousand(char) for char in chars])
+    
+    def special_chars_per_thousand(self, special_chars):
+        count = self.chars_counter.N()
+        for char in special_chars:
+            count -= self.chars_counter[char]
+        return count / self.chars_counter.N() * 1000
+    
+    def upper_chars_per_thousand(self):
+        return len(re.findall(r'[A-Z]', self.raw_text)) / self.raw_text_length * 1000
+    
+    def spaces_per_thousand(self):
+        return len([x for x in self.raw_text if x.isspace()])
+    
+    def has_urls(self):
+        return int(bool(re.search('https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+', self.raw_text)))
 
     def syllables_per_thousand(self):
         return self.get_number_syllables() / self.raw_text_length * 1000
@@ -248,14 +264,14 @@ class StylometryExtractor:
     def pos_tag_trigrams_percents(self):
         number_of_trigrams = sum(self.all_trigrams.values())
         return {
-            '_'.join(trigram): self.all_trigrams[trigram] / number_of_trigrams
+            '_'.join(trigram): self.all_trigrams[trigram] / number_of_trigrams * 1000
             for trigram in MOST_COMMON_POS_TAG_TRIGRAMS
         }
 
     def pos_tag_fourgrams_percents(self):
         number_of_fourgrams = sum(self.all_fourgrams.values())
         return {
-            '_'.join(fourgram): self.all_fourgrams[fourgram] / number_of_fourgrams
+            '_'.join(fourgram): self.all_fourgrams[fourgram] / number_of_fourgrams * 1000
             for fourgram in MOST_COMMON_POS_TAG_FOURGRAMS
         }
 
@@ -278,7 +294,6 @@ class StylometryExtractor:
             'Mean Sentence Length' : self.mean_sentence_len(),
             'STDEV Sentence Length' : self.std_sentence_len(),
             'Mean paragraph Length' : self.mean_paragraph_len(),
-            'Number of letters' : self.number_of_letters,
             'Flesch Reading Ease' : self.get_flesch_reading_ease(),
             'Flesch Kincaid Grade' : self.flesch_kincaid_grade_level(),
             'Coleman Liau Index' : self.get_coleman_liau_index(),
@@ -291,40 +306,44 @@ class StylometryExtractor:
             'Yule Vocabulary Richness' : self.yule_vocabulary_richness(),
             'Simpson Vocabulary Richness' : self.simpson_vocabulary_richness(),
             'Punctuation' : self.chars_per_thousand(['.', ',', '!', ';', '?']),
-            'Special characters' : self.chars_per_thousand(['%', '#', ')', '(', '@', '$', '^','&', '>', '<', '*', '_', '-','=', '-', '+', '/','\\', '\'', '"', '`']),
+            'Special characters' : self.chars_per_thousand(['%', '#', ')', '(', '@', '$', '^','&', '>', '<', '*', '_', '-','=', '-', '+', '/','\\', '\'', '`']),
+            'Even more special characters' : self.special_chars_per_thousand(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", '%', '#', ')', '(', '@', '$', '^','&', '>', '<', '*', '_', '-','=', '-', '+', '/','\\', "'", '`', '"', '\n', '\r', ' ', '.', ',', '!', ';', '?', '[', ']', '{', '}', '\t']),
             'Commas' : self.token_per_thousand(','),
             'Semicolons' : self.token_per_thousand(';'),
-            'Quotations' : self.token_per_thousand('\"'),
+            'Quotations' : self.token_per_thousand('"'),
             'Exclamations' : self.token_per_thousand('!'),
             'Colons' : self.token_per_thousand(':'),
             'Hyphens' : self.token_per_thousand('-'),
             'Double Hyphens' : self.token_per_thousand('--'),
-            'A' : self.char_per_thousand('a'),
-            'B' : self.char_per_thousand('b'),
-            'C' : self.char_per_thousand('c'),
-            'D' : self.char_per_thousand('d'),
-            'E' : self.char_per_thousand('e'),
-            'F' : self.char_per_thousand('f'),
-            'G' : self.char_per_thousand('g'),
-            'H' : self.char_per_thousand('h'),
-            'I' : self.char_per_thousand('i'),
-            'J' : self.char_per_thousand('j'),
-            'K' : self.char_per_thousand('k'),
-            'L' : self.char_per_thousand('l'),
-            'M' : self.char_per_thousand('m'),
-            'N' : self.char_per_thousand('n'),
-            'O' : self.char_per_thousand('o'),
-            'P' : self.char_per_thousand('p'),
-            'Q' : self.char_per_thousand('q'),
-            'R' : self.char_per_thousand('r'),
-            'S' : self.char_per_thousand('s'),
-            'T' : self.char_per_thousand('t'),
-            'U' : self.char_per_thousand('u'),
-            'V' : self.char_per_thousand('v'),
-            'W' : self.char_per_thousand('w'),
-            'X' : self.char_per_thousand('x'),
-            'Y' : self.char_per_thousand('y'),
-            'Z' : self.char_per_thousand('z'),
+            'Spaces' : self.spaces_per_thousand(),
+            'UpperCase Letters' : self.upper_chars_per_thousand(),
+            'Has URLs' : self.has_urls(),
+            'A' : self.chars_per_thousand(['a','A']),
+            'B' : self.chars_per_thousand(['b','B']),
+            'C' : self.chars_per_thousand(['c','C']),
+            'D' : self.chars_per_thousand(['d','D']),
+            'E' : self.chars_per_thousand(['e','E']),
+            'F' : self.chars_per_thousand(['f','F']),
+            'G' : self.chars_per_thousand(['g','G']),
+            'H' : self.chars_per_thousand(['h','H']),
+            'I' : self.chars_per_thousand(['i','I']),
+            'J' : self.chars_per_thousand(['j','J']),
+            'K' : self.chars_per_thousand(['k','K']),
+            'L' : self.chars_per_thousand(['l','L']),
+            'M' : self.chars_per_thousand(['m','M']),
+            'N' : self.chars_per_thousand(['n','N']),
+            'O' : self.chars_per_thousand(['o','O']),
+            'P' : self.chars_per_thousand(['p','P']),
+            'Q' : self.chars_per_thousand(['q','Q']),
+            'R' : self.chars_per_thousand(['r','R']),
+            'S' : self.chars_per_thousand(['s','S']),
+            'T' : self.chars_per_thousand(['t','T']),
+            'U' : self.chars_per_thousand(['u','U']),
+            'V' : self.chars_per_thousand(['v','V']),
+            'W' : self.chars_per_thousand(['w','W']),
+            'X' : self.chars_per_thousand(['x','X']),
+            'Y' : self.chars_per_thousand(['y','Y']),
+            'Z' : self.chars_per_thousand(['z','Z']),
             'Numbers' : self.chars_per_thousand(['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']),
             'Syllables' : self.syllables_per_thousand(),
             'Mean syllables per word' : self.mean_of_syllables_per_word(),
