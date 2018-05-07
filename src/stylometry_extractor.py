@@ -307,7 +307,7 @@ class StylometryExtractor:
             'Simpson Vocabulary Richness' : self.simpson_vocabulary_richness(),
             'Punctuation' : self.chars_per_thousand(['.', ',', '!', ';', '?']),
             'Special characters' : self.chars_per_thousand(['%', '#', ')', '(', '@', '$', '^','&', '>', '<', '*', '_', '-','=', '-', '+', '/','\\', '\'', '`']),
-            'Even more special characters' : self.special_chars_per_thousand(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", '%', '#', ')', '(', '@', '$', '^','&', '>', '<', '*', '_', '-','=', '-', '+', '/','\\', "'", '`', '"', '\n', '\r', ' ', '.', ',', '!', ';', '?', '[', ']', '{', '}', '\t']),
+            'Even more special characters' : self.special_chars_per_thousand(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", '%', '#', ')', '(', '@', '$', '^','&', '>', '<', '*', '_', '-','=', '-', '+', '/','\\', "'", '`', '"', '\n', '\r', ' ', '.', ',', '!', ';', '?', '[', ']', '{', '}', '\t', ':']),
             'Commas' : self.token_per_thousand(','),
             'Semicolons' : self.token_per_thousand(';'),
             'Quotations' : self.token_per_thousand('"'),
