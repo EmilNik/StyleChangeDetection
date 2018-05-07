@@ -12,20 +12,20 @@ from nltk.probability import FreqDist
 from nltk.corpus import stopwords
 from collections import Counter, OrderedDict
 
-with open('../data/models/most_common_pos_tag_trigrams.csv', 'r') as f:
+with open('../data/pos_tag_ngrams/most_common_pos_tag_trigrams.csv', 'r') as f:
     MOST_COMMON_POS_TAG_TRIGRAMS = []
     reader = csv.reader(f)
     for line in reader:
         MOST_COMMON_POS_TAG_TRIGRAMS.append(tuple(line))
 
-with open('../data/models/most_common_pos_tag_fourgrams.csv', 'r') as f:
+with open('../data/pos_tag_ngrams/most_common_pos_tag_fourgrams.csv', 'r') as f:
     MOST_COMMON_POS_TAG_FOURGRAMS = []
     reader = csv.reader(f)
     for line in reader:
         MOST_COMMON_POS_TAG_FOURGRAMS.append(tuple(line))
 
 
-with open('../data/models/vectorizer_500.pk', 'rb') as f:
+with open('../data/char_ngram_vectorizer.pk', 'rb') as f:
     VECTORIZER = dill.load(f)
 
 
@@ -81,19 +81,19 @@ class StylometryExtractor:
 
     def chars_per_thousand(self, chars):
         return sum([self.char_per_thousand(char) for char in chars])
-    
+
     def special_chars_per_thousand(self, special_chars):
         count = self.chars_counter.N()
         for char in special_chars:
             count -= self.chars_counter[char]
         return count / self.chars_counter.N() * 1000
-    
+
     def upper_chars_per_thousand(self):
         return len(re.findall(r'[A-Z]', self.raw_text)) / self.raw_text_length * 1000
-    
+
     def spaces_per_thousand(self):
         return len([x for x in self.raw_text if x.isspace()])
-    
+
     def has_urls(self):
         return int(bool(re.search('https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+', self.raw_text)))
 
