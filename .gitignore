@@ -1,17 +1,5 @@
 .DS_Store
-data/500_ngrams/train_features.csv
-data/500_ngrams/validation_features.csv
-data/500_ngrams/train_features_scaled_standard.csv
-data/500_ngrams/validation_features_scaled_standard.csv
-data/500_ngrams/train_features_scaled_minmax.csv
-data/500_ngrams/validation_features_scaled_minmax.csv
-data/imposters/imposters_features.csv
-data/imposters/imposters_scaled_minmax.csv
-data/imposters/imposters_scaled_standard.csv
-data/imposters/1000_train_imposters_canberra_similarities_259.csv
-data/imposters/1000_val_imposters_canberra_similarities_259.csv
-data/imposters/train_imposters_canberra_similarities_259.csv
-data/imposters/val_imposters_canberra_similarities_259.csv
+data_old/
 
 
 # Byte-compiled / optimized / DLL files
