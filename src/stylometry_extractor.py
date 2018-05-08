@@ -92,7 +92,7 @@ class StylometryExtractor:
         return len(re.findall(r'[A-Z]', self.raw_text)) / self.raw_text_length * 1000
 
     def spaces_per_thousand(self):
-        return len([x for x in self.raw_text if x.isspace()])
+        return len([x for x in self.raw_text if x.isspace()]) / self.raw_text_length * 1000
 
     def has_urls(self):
         return int(bool(re.search('https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+', self.raw_text)))
