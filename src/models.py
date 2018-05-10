@@ -21,9 +21,10 @@ class Models:
         # TODO other models?
         logging.debug('Done.')
 
-    def classify(self, a, b):
+    def classify_proba(self, a, b):
         # NOTE: a and b are expected to have ndim = 1!
         # 1st model - svm similarities:
         s = np.array(similarities(a, b)).reshape(1, -1)
-        y_pred_svm = self.svm.predict(s)
+        for_false, for_true = self.svm.predict_proba(s)[0]
         # TODO
+        return (for_false, for_true)

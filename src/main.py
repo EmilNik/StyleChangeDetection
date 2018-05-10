@@ -1,6 +1,7 @@
 import os
 import itertools
 import argparse
+import json
 import numpy as np
 import sklearn
 import logging
@@ -33,8 +34,8 @@ def load_scalers():
 
 def split_texts(texts):
     """Return list of tuples of text chunks"""
-    # TODO better way
-    return list(map(lambda t: (t[:len(t)//2], t[len(t)//2:]), texts))
+    # TODO better way?
+    return list(map(lambda t: (t[:len(t)//3], t[len(t)//3:len(t)//3*2], t[len(t)//3*2:]), texts))
 
 def to_vectors(splitted_texts, normalizer):
     """Converts list of tuples of text chunks to feature vectors (normalized)"""
@@ -61,11 +62,11 @@ def main():
     parser.add_argument("-o", "--output-dir", required=True, help="List of truth files, one for each txt file in our --eval-dir.")
     args = parser.parse_args()
 
-    # uncomment me later
-    #if os.path.exists(args.output_dir):
-    #    raise Exception('%s already exists!' % args.output_dir)
-
-    #os.makedirs(args.output_dir)
+    if os.path.exists(args.output_dir):
+        logging.warn('[%s] already exists! Will possibly override files in it!' % args.output_dir)
+    else:
+        logging.debug('Creating [%s].' % args.output_dir)
+        os.makedirs(args.output_dir)
 
 
     texts = load_texts(args.eval_dir)
@@ -77,13 +78,21 @@ def main():
     # NOTE using standard scaler
     splitted_texts_vectors = to_vectors(splitted_texts, scalers['standard'].transform)
 
+    logging.debug('Making predictions...')
     for i, chunks_vectors_tuple in enumerate(splitted_texts_vectors, 1):
         chunks_vectors_pairs = itertools.combinations(chunks_vectors_tuple, 2)
-        y_pred = itertools.Counter()
+        confidences = [0, 0] # (for false, for true)
         for a, b in chunks_vectors_pairs:
-            prediction_for_curr_pair = models.classify(a, b)
-            y_pred[prediction_for_curr_pair] += 1 # or something of the sort
-        # TODO output y_pred in a json file in OUTPUT_DIR
+            pred_for_false, pred_for_true = models.classify_proba(a, b)
+            # TODO if very confident about style change - break or something?
+            confidences[0] += pred_for_false
+            confidences[1] += pred_for_true
+
+        y_pred = bool(np.argmax(confidences))
+        with open(os.path.join(args.output_dir, 'problem-%d.truth' % i), 'w') as f:
+            json.dump({ 'changes': y_pred }, f)
+
+    logging.debug('Done.')
 
 if __name__ == "__main__":
     main()
