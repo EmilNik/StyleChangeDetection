@@ -9,7 +9,10 @@ class Document:
         self.positions = positions # character positions
         self._sentences = None
         self._sent_positions = None
+        self._words = None
+        self._word_positions = None
         self._sent_counts_before_style_change = None
+        self._word_counts_before_style_change = None
 
     @property
     def sentences(self):
@@ -24,6 +27,18 @@ class Document:
         return self._sent_positions
 
     @property
+    def words(self):
+        if self._words is None:
+            self._words, self._word_positions = self._split_words()
+        return self._words
+
+    @property
+    def word_positions(self):
+        if self._word_positions is None:
+            self._words, self._word_positions = self._split_words()
+        return self._word_positions
+
+    @property
     def sent_counts_before_style_change(self):
         if self._sent_counts_before_style_change is None:
             self._sent_counts_before_style_change = []
@@ -34,6 +49,18 @@ class Document:
                 self._sent_counts_before_style_change.append(sent_pos - last)
                 last = sent_pos
         return self._sent_counts_before_style_change
+
+    @property
+    def word_counts_before_style_change(self):
+        if self._word_counts_before_style_change is None:
+            self._word_counts_before_style_change = []
+            if not self.has_changes:
+                return self._word_counts_before_style_change
+            last = 0
+            for word_pos in self.word_positions:
+                self._word_counts_before_style_change.append(sent_pos - last)
+                last = word_pos
+        return self._word_counts_before_style_change
 
     def _split_sentences(self):
         # split and map character positions to sentence positions
@@ -52,6 +79,22 @@ class Document:
             sent_positions.pop()
 
         return sentences, sent_positions
+
+    def _split_words(self):
+        # split and map character positions to word positions
+        word_positions = []
+
+        if not self.has_changes:
+            words = word_tokenize(self.text)
+        else:
+            words = []
+            parts = [self.text[i:j] for i,j in zip([None]+self.positions, self.positions+[None])]
+            for part in parts:
+                words += word_tokenize(part)
+                word_positions.append(len(words))
+            word_positions.pop()
+
+        return words, word_positions
 
     def __str__(self):
         marked_document = self.text
